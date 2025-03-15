@@ -1,0 +1,6 @@
+.env
+.venv/
+data/
+SQLQuery1.sql
+notebook/
+__pycache__/
