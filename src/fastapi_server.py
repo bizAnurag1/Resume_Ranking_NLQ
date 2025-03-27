@@ -3,6 +3,7 @@ import shutil
 import os
 from pydantic import BaseModel
 from config import RESUME_FOLDER
+from src.resume_upload import upload_to_adls
 from src.extractor import ResumeExtractor
 from src.azure_openai import AzureOpenAI
 from src.database import DatabaseManager
@@ -26,14 +27,15 @@ async def upload_resumes(files: List[UploadFile] = File(...)):
     processed_resumes = []
 
     for file in files:
-        file_path = os.path.join(RESUME_FOLDER, file.filename)
-        
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # file_path = os.path.join(RESUME_FOLDER, file.filename)
+        file_path = upload_to_adls(file)
+
+        # with open(file_path, "wb") as buffer:
+        #     shutil.copyfileobj(file.file, buffer)
 
         # Extract text using Azure Document Intelligence
         extracted_text = extractor.extract_text(file_path)
-
+        print("text extracted completed")
         # Convert extracted text to structured JSON using Azure OpenAI
         resume_json = openai_processor.convert_to_json(extracted_text)
 

@@ -3,7 +3,7 @@ from langchain_community.utilities import SQLDatabase
 from langchain.prompts import BasePromptTemplate
 from sqlalchemy import create_engine
 from config import AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_MODEL
-from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX
+from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX, AZURE_SQL_CONNECTION_STRING
 from langchain_community.agent_toolkits import create_sql_agent, SQLDatabaseToolkit
 import json, pandas as pd
 from fastapi.responses import JSONResponse
@@ -14,7 +14,7 @@ class NLQProcessor():
         """Initialize NLQ Processor with Azure OpenAI and SQL Database connection."""
         
         # Create the database connection
-        self.engine = create_engine(SQL_SERVER_CONNECTION_STRING)
+        self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
         self.db = SQLDatabase(self.engine)
 
         # Initialize Azure OpenAI Model

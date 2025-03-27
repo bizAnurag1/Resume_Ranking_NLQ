@@ -1,8 +1,8 @@
 from fastapi import FastAPI, UploadFile, File
-import shutil
-import os
+import shutil, os, logging
 from pydantic import BaseModel
 from config import RESUME_FOLDER
+from src.resume_upload import upload_to_adls
 from src.extractor import ResumeExtractor
 from src.azure_openai import AzureOpenai
 from src.database import DatabaseManager
@@ -26,10 +26,13 @@ async def upload_resumes(files: List[UploadFile] = File(...)):
     processed_resumes = []
 
     for file in files:
-        file_path = os.path.join(RESUME_FOLDER, file.filename)
+        # file_path = os.path.join(RESUME_FOLDER, file.filename)
         
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # with open(file_path, "wb") as buffer:
+        #     shutil.copyfileobj(file.file, buffer)
+        logging.getLogger("azure").setLevel(logging.CRITICAL)
+
+        file_path = upload_to_adls(file)
 
         # Extract text using Azure Document Intelligence
         extracted_text = extractor.extract_text(file_path)
@@ -39,11 +42,12 @@ async def upload_resumes(files: List[UploadFile] = File(...)):
         # print("data extracted successfully!!")
         # print(resume_json)
         # Store JSON data in SQL Server
-        db_manager.insert_resume(resume_json)
+        db_manager.insert_resume(resume_json, file_path)
         # print("data insertion completed")
         processed_resumes.append({"filename": file.filename, "status": "Processed"})
 
-    return {"message": "Batch processing complete", "processed_resumes": processed_resumes}
+    # return {"message": "Batch processing complete", "processed_resumes": processed_resumes}
+    return True
 
 
 @app.post("/query")

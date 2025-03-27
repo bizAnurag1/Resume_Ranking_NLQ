@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import urllib
 
 # Paths
 RESUME_FOLDER = "./data/resumes/"
@@ -15,9 +16,25 @@ AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL")
 
+# Azure Storage Account details
+STORAGE_ACCOUNT_NAME = os.getenv("STORAGE_ACCOUNT_NAME")
+STORAGE_ACCOUNT_KEY = os.getenv("STORAGE_ACCOUNT_KEY")
+CONTAINER_NAME = os.getenv("CONTAINER_NAME")
+AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+
 # SQL Server Credentials
 SQL_SERVER_CONNECTION_STRING = "mssql+pyodbc://DESKTOP-OLPAHOD\SQLEXPRESS/ResumeDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes"
-
+conn_str = (
+    "DRIVER={ODBC Driver 17 for SQL Server};"
+    "SERVER=tcp:sqlserver-deaccelerator-dev.database.windows.net,1433;"
+    "DATABASE=resumeranking;"
+    "Authentication=ActiveDirectoryInteractive;"
+    "Encrypt=yes;"
+    "TrustServerCertificate=no;"
+    "Connection Timeout=300;"
+)
+params = urllib.parse.quote_plus(conn_str)
+AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
 
 json_content = """{
     "Name": "",
@@ -99,13 +116,16 @@ MSSQL_AGENT_PREFIX = """
         Column("Last Organization", JSON),  # Work Experience Details (Array format)
         Column("Second Last Organization", JSON),  # Work Experience Details (Array format)
         Column("Summary", NVARCHAR(max)),  # 4-5 Line Summary of the Resume
+        Column("Blob_URL", NVARCHAR(1000)) #file url from azure blob storage.
 
         You are an agent designed to interact with a SQL database.
         ## Instructions:
         - Given an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.
         - Unless the user specifies a specific number of examples they wish to obtain, **ALWAYS** limit your query to at most {top_k} results.
         - You can order the results by a relevant column to return the most interesting examples in the database.
-        - Never query for all the columns from a specific table, only ask for the relevant columns given the question.
+        - Never query for all the columns from a specific table
+        - only ask for the relevant columns given the question.
+        - Include "Blob_URL" column everytime.
         - Strictly Retrieve **complete Summary text** Everytime. Ensure that no part of the Summary is truncated.
         - You have access to tools for interacting with the database.
         - You MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.

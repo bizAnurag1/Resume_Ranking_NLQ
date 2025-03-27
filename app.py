@@ -53,7 +53,7 @@ with st.sidebar:
 
                 if response.status_code == 200:
                     st.success("✅ All resumes processed successfully!")
-                    st.json(response.json())  # Display processed resumes
+                    # st.json(response.json())  # Display processed resumes
                 else:
                     st.error(f"❌ Error processing resumes: {response.text}")
 
@@ -98,7 +98,10 @@ if st.button("Submit Query"):
                         df = pd.DataFrame()
                     # st.dataframe(df, hide_index=True, column_config={"Resume Text": None, "Id": None, "SkillMatch": None})
                     st.data_editor(df, column_config={"Summary": st.column_config.TextColumn(width="large"), 
-                                                      "Resume Text": None, "Id": None, "SkillMatch": None}, hide_index=True)
+                                                      "Resume Text": None, "Id": None, "SkillMatch": None, "Blob_URL": st.column_config.LinkColumn(
+                                                      "Resume",  # Column Name
+                                                      display_text="View"),
+                                                      }, hide_index=True)
                     # st.table(df)
 
  

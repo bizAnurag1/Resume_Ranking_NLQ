@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, JSON, NVARCHAR
-from config import SQL_SERVER_CONNECTION_STRING
+from config import SQL_SERVER_CONNECTION_STRING, AZURE_SQL_CONNECTION_STRING
 import json, pyodbc
 
 class DatabaseManager:
     def __init__(self):
-        self.engine = create_engine(SQL_SERVER_CONNECTION_STRING)
+        self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
         self.metadata = MetaData()
 
         self.resumes = Table(
@@ -24,13 +24,15 @@ class DatabaseManager:
             Column("Last Organization", JSON),  # Work Experience Details 
             Column("Second Last Organization", JSON),  # Work Experience Details 
             Column("Summary", NVARCHAR("max")),  # 4-5 Line Summary of the Resume
+            Column("Blob_URL", NVARCHAR(1000)), # resume path
             # Column("Resume Text", NVARCHAR("max")) # Full Extracted Resume Text from PDF
         )
 
         self.metadata.create_all(self.engine)
 
-    def insert_resume(self, resume_json):
+    def insert_resume(self, resume_json, blob_url):
         data = json.loads(resume_json)
-        with self.engine.connect() as conn:
+        data["Blob_URL"] = blob_url
+        with self.engine.begin() as conn:
             conn.execute(self.resumes.insert(), data)
             conn.commit()
