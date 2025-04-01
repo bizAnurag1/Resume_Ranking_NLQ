@@ -29,6 +29,7 @@ conn_str = (
     "SERVER=tcp:sqlserver-deaccelerator-dev.database.windows.net,1433;"
     "DATABASE=resumeranking;"
     "Authentication=ActiveDirectoryInteractive;"
+#     "Authentication=ActiveDirectoryIntegrated;"
     "Encrypt=yes;"
     "TrustServerCertificate=no;"
     "Connection Timeout=300;"
