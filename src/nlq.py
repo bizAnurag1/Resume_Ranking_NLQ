@@ -6,7 +6,7 @@ from config import AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_MODEL
 from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX
 from config import server, driver, database
 from langchain_community.agent_toolkits import create_sql_agent, SQLDatabaseToolkit
-import json, pandas as pd, urllib
+import json, pandas as pd, urllib, struct
 from azure.identity import DefaultAzureCredential
 from fastapi.responses import JSONResponse
 
@@ -20,8 +20,8 @@ class NLQProcessor():
         # Get token using DefaultAzureCredential (works with managed identity)
         credential = DefaultAzureCredential()
         token = credential.get_token("https://database.windows.net/").token
-        token_bytes = bytes(token, "utf-8")
-        token_struct = bytes([len(token_bytes)]) + token_bytes
+        access_token = bytes(token, "utf-8")
+        token_struct = struct.pack("B", len(access_token)) + access_token
 
         # Build ODBC connection string
         conn_str = (

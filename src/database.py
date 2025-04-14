@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, JSON, NVARCHAR, text
 from azure.identity import DefaultAzureCredential
 import urllib, json
-import pyodbc
+import pyodbc, struct
 from config import server, driver, database
 
 class DatabaseManager:
@@ -10,8 +10,8 @@ class DatabaseManager:
         # Get token using DefaultAzureCredential (works with managed identity)
         credential = DefaultAzureCredential()
         token = credential.get_token("https://database.windows.net/").token
-        token_bytes = bytes(token, "utf-8")
-        token_struct = bytes([len(token_bytes)]) + token_bytes
+        access_token = bytes(token, "utf-8")
+        token_struct = struct.pack("B", len(access_token)) + access_token
 
         # Build ODBC connection string
         conn_str = (
