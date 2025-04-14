@@ -3,9 +3,11 @@ from langchain_community.utilities import SQLDatabase
 from langchain.prompts import BasePromptTemplate
 from sqlalchemy import create_engine
 from config import AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_MODEL
-from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX, AZURE_SQL_CONNECTION_STRING
+from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX
+from config import server, driver, database
 from langchain_community.agent_toolkits import create_sql_agent, SQLDatabaseToolkit
-import json, pandas as pd
+import json, pandas as pd, urllib
+from azure.identity import DefaultAzureCredential
 from fastapi.responses import JSONResponse
 
 
@@ -14,7 +16,32 @@ class NLQProcessor():
         """Initialize NLQ Processor with Azure OpenAI and SQL Database connection."""
         
         # Create the database connection
-        self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
+        # self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
+        # Get token using DefaultAzureCredential (works with managed identity)
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://database.windows.net/").token
+        token_bytes = bytes(token, "utf-8")
+        token_struct = bytes([len(token_bytes)]) + token_bytes
+
+        # Build ODBC connection string
+        conn_str = (
+            f"DRIVER={driver};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=no;"
+            f"Connection Timeout=30;"
+        )
+        params = urllib.parse.quote_plus(conn_str)
+        AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
+
+        # self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
+        # Create engine with token-based authentication
+        self.engine = create_engine(
+            AZURE_SQL_CONNECTION_STRING,
+            connect_args={"attrs_before": {1256: token_struct}},
+            fast_executemany=True,
+        )
         self.db = SQLDatabase(self.engine)
 
         # Initialize Azure OpenAI Model
@@ -61,7 +88,7 @@ class NLQProcessor():
             # print(response)
             json_res = response.get("output").strip("```json").strip("\n```")
             # json_response = json.loads(json_res)
-            print(json_res)
+            # print(json_res)
             # df = pd.DataFrame(json_response)
             return JSONResponse(content=json_res)
         except Exception as e:

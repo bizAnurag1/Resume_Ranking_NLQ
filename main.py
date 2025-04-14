@@ -8,8 +8,17 @@ from src.azure_openai import AzureOpenai
 from src.database import DatabaseManager
 from src.nlq import NLQProcessor
 from typing import List
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  #frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 class QueryRequest(BaseModel):
     query: str

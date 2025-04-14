@@ -24,18 +24,22 @@ AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 
 # SQL Server Credentials
 SQL_SERVER_CONNECTION_STRING = "mssql+pyodbc://DESKTOP-OLPAHOD\SQLEXPRESS/ResumeDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes"
-conn_str = (
-    "DRIVER={ODBC Driver 17 for SQL Server};"
-    "SERVER=tcp:sqlserver-deaccelerator-dev.database.windows.net,1433;"
-    "DATABASE=resumeranking;"
-    "Authentication=ActiveDirectoryInteractive;"
-#     "Authentication=ActiveDirectoryIntegrated;"
-    "Encrypt=yes;"
-    "TrustServerCertificate=no;"
-    "Connection Timeout=300;"
-)
-params = urllib.parse.quote_plus(conn_str)
-AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
+# conn_str = (
+#     "DRIVER={ODBC Driver 17 for SQL Server};"
+#     "SERVER=tcp:sqlserver-deaccelerator-dev.database.windows.net,1433;"
+#     "DATABASE=resumeranking;"
+#     "Authentication=ActiveDirectoryInteractive;"
+# #     "Authentication=ActiveDirectoryIntegrated;"
+#     "Encrypt=yes;"
+#     "TrustServerCertificate=no;"
+#     "Connection Timeout=300;"
+# )
+# params = urllib.parse.quote_plus(conn_str)
+# AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
+
+server = "sqlserver-deaccelerator-dev.database.windows.net"
+database = "resumeranking"
+driver = "{ODBC Driver 18 for SQL Server}"
 
 json_content = """{
     "Name": "",

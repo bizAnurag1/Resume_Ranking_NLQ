@@ -1,10 +1,37 @@
-from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, JSON, NVARCHAR
-from config import SQL_SERVER_CONNECTION_STRING, AZURE_SQL_CONNECTION_STRING
-import json, pyodbc
+from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData, JSON, NVARCHAR, text
+from azure.identity import DefaultAzureCredential
+import urllib, json
+import pyodbc
+from config import server, driver, database
 
 class DatabaseManager:
     def __init__(self):
-        self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
+
+        # Get token using DefaultAzureCredential (works with managed identity)
+        credential = DefaultAzureCredential()
+        token = credential.get_token("https://database.windows.net/").token
+        token_bytes = bytes(token, "utf-8")
+        token_struct = bytes([len(token_bytes)]) + token_bytes
+
+        # Build ODBC connection string
+        conn_str = (
+            f"DRIVER={driver};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=no;"
+            f"Connection Timeout=30;"
+        )
+        params = urllib.parse.quote_plus(conn_str)
+        AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
+
+        # self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
+        # Create engine with token-based authentication
+        self.engine = create_engine(
+            AZURE_SQL_CONNECTION_STRING,
+            connect_args={"attrs_before": {1256: token_struct}},
+            fast_executemany=True,
+        )
         self.metadata = MetaData()
 
         self.resumes = Table(
@@ -35,4 +62,4 @@ class DatabaseManager:
         data["Blob_URL"] = blob_url
         with self.engine.begin() as conn:
             conn.execute(self.resumes.insert(), data)
-            conn.commit()
+            # conn.commit()
