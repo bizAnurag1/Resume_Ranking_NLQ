@@ -21,7 +21,7 @@ class NLQProcessor():
         credential = DefaultAzureCredential()
         token = credential.get_token("https://database.windows.net/").token
         access_token = bytes(token, "utf-8")
-        token_struct = struct.pack("B", len(access_token)) + access_token
+        token_struct = struct.pack("I", len(access_token)) + access_token
 
         # Build ODBC connection string
         conn_str = (
