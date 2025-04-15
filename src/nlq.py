@@ -4,7 +4,7 @@ from langchain.prompts import BasePromptTemplate
 from sqlalchemy import create_engine
 from config import AZURE_OPENAI_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_MODEL
 from config import SQL_SERVER_CONNECTION_STRING, MSSQL_AGENT_PREFIX
-from config import server, driver, database
+from config import AZURE_SQL_CONNECTION_STRING
 from langchain_community.agent_toolkits import create_sql_agent, SQLDatabaseToolkit
 import json, pandas as pd, urllib, struct
 from azure.identity import DefaultAzureCredential
@@ -14,34 +14,7 @@ from fastapi.responses import JSONResponse
 class NLQProcessor():
     def __init__(self):
         """Initialize NLQ Processor with Azure OpenAI and SQL Database connection."""
-        
-        # Create the database connection
-        # self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
-        # Get token using DefaultAzureCredential (works with managed identity)
-        credential = DefaultAzureCredential()
-        token = credential.get_token("https://database.windows.net/").token
-        access_token = bytes(token, "utf-8")
-        token_struct = struct.pack("I", len(access_token)) + access_token
-
-        # Build ODBC connection string
-        conn_str = (
-            f"DRIVER={driver};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"Encrypt=yes;"
-            f"TrustServerCertificate=no;"
-            f"Connection Timeout=30;"
-        )
-        params = urllib.parse.quote_plus(conn_str)
-        AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
-
-        # self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
-        # Create engine with token-based authentication
-        self.engine = create_engine(
-            AZURE_SQL_CONNECTION_STRING,
-            connect_args={"attrs_before": {1256: token_struct}},
-            fast_executemany=True,
-        )
+        self.engine = create_engine(AZURE_SQL_CONNECTION_STRING)
         self.db = SQLDatabase(self.engine)
 
         # Initialize Azure OpenAI Model

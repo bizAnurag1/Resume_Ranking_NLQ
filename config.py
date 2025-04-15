@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 from dotenv import load_dotenv
 import urllib
 
@@ -22,6 +23,12 @@ STORAGE_ACCOUNT_KEY = os.getenv("STORAGE_ACCOUNT_KEY")
 CONTAINER_NAME = os.getenv("CONTAINER_NAME")
 AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 
+server = os.getenv("servername")
+username = os.getenv("db_username")
+password = os.getenv("password")
+driver = "{ODBC Driver 17 for SQL Server}"
+database = "resumeranking"
+
 # SQL Server Credentials
 SQL_SERVER_CONNECTION_STRING = "mssql+pyodbc://DESKTOP-OLPAHOD\SQLEXPRESS/ResumeDB?driver=ODBC+Driver+17+for+SQL+Server&trusted_connection=yes"
 # conn_str = (
@@ -37,9 +44,14 @@ SQL_SERVER_CONNECTION_STRING = "mssql+pyodbc://DESKTOP-OLPAHOD\SQLEXPRESS/Resume
 # params = urllib.parse.quote_plus(conn_str)
 # AZURE_SQL_CONNECTION_STRING = f"mssql+pyodbc:///?odbc_connect={params}"
 
-server = "sqlserver-deaccelerator-dev.database.windows.net"
-database = "resumeranking"
-driver = "{ODBC Driver 18 for SQL Server}"
+AZURE_SQL_CONNECTION_STRING = (
+    f"mssql+pyodbc://{username}:{password}@{server}:1433/{database}"
+    "?driver=ODBC+Driver+17+for+SQL+Server"
+    "&encrypt=yes"
+    "&trustservercertificate=no"
+    "&connection+timeout=30"
+)
+
 
 json_content = """{
     "Name": "",
